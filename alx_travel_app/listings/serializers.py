@@ -1,28 +1,23 @@
-#!/usr/bin/env python3
-"""
-Serializers for travel app models.
-They transform Django model instances into JSON responses for APIs.
-"""
-
 from rest_framework import serializers
 from .models import Listing, Booking
 
-
 class ListingSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Listing model.
-    Converts a Listing object → JSON.
-    """
     class Meta:
         model = Listing
-        fields = ['id', 'title', 'description', 'price_per_night', 'location', 'created_at']
-
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
 
 class BookingSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Booking model.
-    Converts a Booking object → JSON.
-    """
     class Meta:
         model = Booking
-        fields = ['id', 'user', 'listing', 'start_date', 'end_date', 'created_at']
+        fields = '__all__'
+        read_only_fields = ['created_at']
+    
+    def validate(self, data):
+        # Add custom validation (e.g., check-in before check-out)
+        if data.get('check_in') and data.get('check_out'):
+            if data['check_in'] >= data['check_out']:
+                raise serializers.ValidationError(
+                    "Check-out date must be after check-in date"
+                )
+        return data
